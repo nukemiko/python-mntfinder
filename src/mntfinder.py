@@ -7,7 +7,7 @@ import attrs
 
 __all__ = ['MountPoint', 'findMountPointByTarget', 'listAllMountPoints', 'isMountPoint']
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 @attrs.frozen(slots=True, kw_only=True)
