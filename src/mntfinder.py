@@ -85,18 +85,18 @@ def _iteratedParseMountInfoFile(*, pid: int | None = None) -> Iterator[MountPoin
             yield _parseLineOfMountInfoFile(line)
 
 
-def findMountPointByTarget(target: str | os.PathLike[str], *, pid: int | None = None) -> MountPoint | None:
+def findMountPointByTarget(target: str | bytes | os.PathLike, *, pid: int | None = None) -> MountPoint | None:
     """
     Find the mount point object corresponding to the target path.
 
     Args:
-        target (str or os.PathLike[str]): The target path of the mount point to find.
+        target (str, bytes or os.PathLike): The target path of the mount point to find.
         pid (int, optional): Optional process ID to filter mount points by. Defaults to None.
 
     Returns:
         MountPoint or None: The mount point object corresponding to the target path, or None if not found.
     """
-    target_path = Path(target).resolve()
+    target_path = Path(os.fsdecode(target)).resolve()
 
     for mountpoint in _iteratedParseMountInfoFile(pid=pid):
         if mountpoint.target != target_path:
@@ -106,7 +106,7 @@ def findMountPointByTarget(target: str | os.PathLike[str], *, pid: int | None = 
 
 
 def listAllMountPoints(*, source: str | None = None,
-                       target: str | os.PathLike[str] | None = None,
+                       target: str | bytes | os.PathLike | None = None,
                        fstype: str | None = None,
                        pid: int | None = None
                        ) -> list[MountPoint]:
@@ -114,8 +114,8 @@ def listAllMountPoints(*, source: str | None = None,
     Retrieves a list of mount points in the file system based on specified criteria.
 
     Args:
-        source (str | None, optional): The source of the mount point (e.g., device or network location). Defaults to None.
-        target (str | os.PathLike[str] | None, optional): The target directory where the mount point is mounted. Defaults to None.
+        source (str, optional): The source of the mount point (e.g., device or network location). Defaults to None.
+        target (str | bytes | os.PathLike, optional): The target directory where the mount point is mounted. Defaults to None.
         fstype (str | None, optional): The file system type of the mount point. Defaults to None.
         pid (int | None, optional): The process ID for which to retrieve mount points. Defaults to None.
 
@@ -123,7 +123,7 @@ def listAllMountPoints(*, source: str | None = None,
         list[MountPoint]: A list of MountPoint objects representing the mount points in the file system that match the specified criteria.
     """
     mountpoints: list[MountPoint] = []
-    target_path = None if target is None else Path(target).resolve()
+    target_path = None if target is None else Path(os.fsdecode(target)).resolve()
 
     for mountpoint in _iteratedParseMountInfoFile(pid=pid):
         if source is not None and mountpoint.source != source:
@@ -137,7 +137,7 @@ def listAllMountPoints(*, source: str | None = None,
     return mountpoints
 
 
-def isMountPoint(target: str | os.PathLike[str],
+def isMountPoint(target: str | bytes | os.PathLike,
                  *, source: str | None = None,
                  fstype: str | None = None,
                  pid: int | None = None
@@ -146,7 +146,7 @@ def isMountPoint(target: str | os.PathLike[str],
     Check if a given target path is a mount point in the file system.
 
     Args:
-        target (str or os.PathLike[str]): The target path to check if it is a mount point.
+        target (str, bytes or os.PathLike): The target path to check if it is a mount point.
         source (str, optional): Optional source of the mount point to filter by. Defaults to None.
         fstype (str, optional): Optional file system type of the mount point to filter by. Defaults to None.
         pid (int, optional): Optional process ID to filter mount points by. Defaults to None.

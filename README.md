@@ -14,7 +14,7 @@ Or you can download and install the wheel file from release page manually.
 
 All functions shown below can search for mountpoints in `/proc/<pid>/mounts` via the keyword argument `pid`. If not specified `pid`, these functions will search in `/proc/mounts` (it is usually linked to `/proc/self/mounts`.)
 
-### `mntfinder.findMountPointByTarget(target: str | os.PathLike[str], *, pid: int | None = None) -> MountPoint | None`
+### `mntfinder.findMountPointByTarget(target: str | bytes | os.PathLike, *, pid: int | None = None) -> MountPoint | None`
 
 ```python
 import mntfinder
@@ -26,7 +26,7 @@ else:
     print("Mount point not found")
 ```
 
-### `mntfinder.listAllMountPoints(*, source: str | None = None, target: str | os.PathLike[str] | None = None, fstype: str | None = None, pid: int | None = None) -> list[MountPoint]`
+### `mntfinder.listAllMountPoints(*, source: str | None = None, target: str | bytes | os.PathLike | None = None, fstype: str | None = None, pid: int | None = None) -> list[MountPoint]`
 
 #### Retrieve all mount points
 
@@ -60,7 +60,7 @@ import mntfinder
 mountpoints = mntfinder.listAllMountPoints(fstype='ext4')
 ```
 
-### `mntfinder.isMountPoint(target: str | PathLike[str], *, source: str | None = None, fstype: str | None = None, pid: int | None = None) -> bool`
+### `mntfinder.isMountPoint(target: str | bytes | os.PathLike, *, source: str | None = None, fstype: str | None = None, pid: int | None = None) -> bool`
 
 ```python
 import mntfinder
