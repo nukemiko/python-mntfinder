@@ -1,0 +1,28 @@
+[project]
+name = 'mntfinder'
+dynamic = ['version', 'dependencies', 'readme']
+authors = [{ name = 'nukemiko' }]
+description = 'Parse /proc/mounts and find/list mountpoints (Not a wrapper of findmnt)'
+license = { file = 'LICENSE' }
+requires-python = '>=3.10'
+classifiers = [
+    'Programming Language :: Python :: 3',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: POSIX',
+]
+keywords = ['mountpoint', 'mnt', 'findmnt']
+
+[build-system]
+requires = ['setuptools>=61.0']
+build-backend = 'setuptools.build_meta'
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = 'mntfinder.__version__' }
+dependencies = { file = ['requirements.txt'] }
+
+[tool.setuptools.dynamic.readme]
+file = ['README.md']
+content-type = 'text/markdown'
