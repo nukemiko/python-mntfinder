@@ -12,6 +12,11 @@ classifiers = [
 ]
 keywords = ['mountpoint', 'mnt', 'findmnt']
 
+[project.urls]
+Repository = 'https://github.com/nukemiko/python-mntfinder'
+Issues = 'https://github.com/nukemiko/python-mntfinder/issues'
+Changelog = 'https://github.com/nukemiko/python-mntfinder/blob/master/CHANGELOG.md'
+
 [build-system]
 requires = ['setuptools>=61.0']
 build-backend = 'setuptools.build_meta'
