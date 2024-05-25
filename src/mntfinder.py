@@ -7,7 +7,7 @@ import attrs
 
 __all__ = ['MountPointInfo', 'getMountPoint', 'getAllMountPoints', 'isAMountPoint']
 
-__version__ = '0.1.1'
+__version__ = '1.0.0'
 
 
 @attrs.define(slots=True, kw_only=True, eq=False, order=False)
