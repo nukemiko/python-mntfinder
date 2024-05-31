@@ -8,7 +8,7 @@ import attrs
 
 __all__ = ['MountPointInfo', 'getMountPoint', 'getAllMountPoints', 'isAMountPoint']
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 
 @attrs.frozen(slots=True, kw_only=True, eq=False, order=False, hash=True)
@@ -81,7 +81,7 @@ class MountPointInfo(os.PathLike[str]):
         Now this method is deprecated, please use method ``isAlive()`` instead.
         """
         warnings.warn(
-            f'Method isStillMounted() is deprecated. Please use method isAlive() instead.',
+            'Method isStillMounted() is deprecated. Please use method isAlive() instead.',
             DeprecationWarning
         )
         return self.isAlive()
