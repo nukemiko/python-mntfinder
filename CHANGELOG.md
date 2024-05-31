@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Simplified Chinese version at [here](https://semver.org/lang/zh-CN/spec/v2.0.0.html).
 
+## 1.1.0 - 2024-05-31
+
+This version has the following changes:
+
+- Class `MountPointInfo`:
+    - Implemented `__lt__()`, `__gt__()`, and now its instances are orderable. (Try to compare them with operator `<=` and `>=` will cause a `TypeError`, and this is intended.)
+        - Sorting or comparing is done via the `target` attribute of the comparison instance.
+    - Changes of mount point alive detection:
+        - Method `isStillMounted()` now is marked as deprecated and should use the new method `isAlive()` instead.
+        - New method `isAlive()` now is totally dynamic, and not store the result after the mount point is unmounted.
+    - Due to mount point alive detection changes on the above, now its instances are hashable.
+- Others:
+    - Use `MountPointInfo.isAlive()` instead to use `MountPointInfo.isStillMounted()`.
+
 ## 1.0.0 - 2024-05-25
 
 This version has the following changes, some of which are disruptive and NOT compatible with previous versions:
