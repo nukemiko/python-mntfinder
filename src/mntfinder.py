@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import os
+import warnings
 from pathlib import PosixPath as Path
 from typing import Iterator
 
@@ -10,7 +11,7 @@ __all__ = ['MountPointInfo', 'getMountPoint', 'getAllMountPoints', 'isAMountPoin
 __version__ = '1.0.0'
 
 
-@attrs.define(slots=True, kw_only=True, eq=False, order=False)
+@attrs.frozen(slots=True, kw_only=True, eq=False, order=False, hash=True)
 class MountPointInfo(os.PathLike[str]):
     """
     A class representing information about a mount point.
@@ -27,40 +28,48 @@ class MountPointInfo(os.PathLike[str]):
         passno (int): The pass number used by the filesystem checker.
 
     Methods:
-        isStillMounted(self) -> bool:
+        isAlive(self) -> bool:
             Returns ``False`` when called if attribute ``target`` is no longer a mount point; otherwise it returns ``True``.
-
-            Once this method starts returning ``False``, it will not return ``True`` on any subsequent calls.
+        isStillMounted(self) -> bool:
+            Deprecated. Use method ``isAlive()`` instead.
     """
-    source: str = attrs.field(validator=attrs.validators.instance_of(str), on_setattr=attrs.setters.frozen)
-    target: Path = attrs.field(validator=attrs.validators.instance_of(Path), on_setattr=attrs.setters.frozen)
-    fstype: str = attrs.field(validator=attrs.validators.instance_of(str), on_setattr=attrs.setters.frozen)
+    source: str = attrs.field(validator=attrs.validators.instance_of(str))
+    target: Path = attrs.field(validator=attrs.validators.instance_of(Path))
+    fstype: str = attrs.field(validator=attrs.validators.instance_of(str))
     options: tuple[str, ...] = attrs.field(
         validator=attrs.validators.deep_iterable(
             attrs.validators.instance_of(str),
             attrs.validators.instance_of(tuple)
-        ),
-        on_setattr=attrs.setters.frozen
+        )
     )
-    freq: int = attrs.field(validator=attrs.validators.instance_of(int), on_setattr=attrs.setters.frozen)
-    passno: int = attrs.field(validator=attrs.validators.instance_of(int), on_setattr=attrs.setters.frozen)
-    __mounted: bool = attrs.field(init=False, repr=False, default=True)
+    freq: int = attrs.field(validator=attrs.validators.instance_of(int))
+    passno: int = attrs.field(validator=attrs.validators.instance_of(int))
+
+    def __eq(self, other: 'MountPointInfo', /) -> bool:
+        return all(
+            getattr(self, attr) == getattr(other, attr) for attr in attrs.asdict(self)  # type:ignore
+        )
 
     def __eq__(self, other: 'MountPointInfo', /) -> bool:
         if type(other) is not type(self):
             return NotImplemented
-        if not self.isStillMounted():
+        return self.isAlive() and other.isAlive() and self.__eq(other)
+
+    def __lt__(self, other: 'MountPointInfo', /) -> bool:
+        if type(other) is not type(self):
             return NotImplemented
-        if not other.isStillMounted():
+        return self.target < other.target
+
+    def __le__(self, other: 'MountPointInfo', /) -> bool:
+        return NotImplemented
+
+    def __gt__(self, other: 'MountPointInfo', /) -> bool:
+        if type(other) is not type(self):
             return NotImplemented
-        return (
-                other.source == self.source
-                and other.target == self.target
-                and other.fstype == self.fstype
-                and other.options == self.options
-                and other.freq == self.freq
-                and other.passno == self.passno
-        )
+        return self.target > other.target
+
+    def __ge__(self, other: 'MountPointInfo', /) -> bool:
+        return NotImplemented
 
     def __fspath__(self) -> str:
         return os.fspath(self.target)
@@ -69,15 +78,26 @@ class MountPointInfo(os.PathLike[str]):
         """
         Returns ``False`` when called if attribute ``target`` is no longer a mount point; otherwise it returns ``True``.
 
-        Once this method starts returning ``False``, it will not return ``True`` on any subsequent calls.
+        Now this method is deprecated, please use method ``isAlive()`` instead.
         """
-        if not self.__mounted:
-            return self.__mounted
+        warnings.warn(
+            f'Method isStillMounted() is deprecated. Please use method isAlive() instead.',
+            DeprecationWarning
+        )
+        return self.isAlive()
 
-        mounted = self.target.is_mount()
-        if not mounted:
-            self.__mounted = mounted
-        return mounted
+    def isAlive(self) -> bool:
+        """
+        Returns ``False`` when called if attribute ``target`` is no longer a mount point; otherwise it returns ``True``.
+        """
+        if os.path.ismount(self.target):
+            try:
+                if mnt := getMountPoint(self.target):
+                    return self.__eq(mnt)
+            except ValueError:
+                pass
+
+        return False
 
 
 def _mountsFileLineToMountPointInfo(line: str) -> MountPointInfo:
@@ -104,7 +124,7 @@ def _mountsFileLineToMountPointInfo(line: str) -> MountPointInfo:
 
 
 def _iteratedParseMountInfoFile() -> Iterator[MountPointInfo]:
-    mount_info_file = Path('/proc') / 'mounts'
+    mount_info_file = Path('/proc/mounts')
 
     with open(mount_info_file, mode='r', newline='') as f:
         mount_info_text = f.read()
@@ -112,8 +132,7 @@ def _iteratedParseMountInfoFile() -> Iterator[MountPointInfo]:
     for line in mount_info_text.split('\n'):
         if line:
             mount_point_info = _mountsFileLineToMountPointInfo(line)
-            if mount_point_info.isStillMounted():
-                yield mount_point_info
+            yield mount_point_info
 
 
 def getMountPoint(target: str | bytes | os.PathLike) -> MountPointInfo | None:
@@ -156,5 +175,7 @@ def isAMountPoint(target: str | bytes | os.PathLike | MountPointInfo) -> bool:
         bool: ``True`` if the ``target`` is a mount point and still mounted, ``False`` otherwise.
     """
     if isinstance(target, MountPointInfo):
-        return target.isStillMounted()
-    return bool(getMountPoint(target))
+        return target.isAlive()
+    if mnt := getMountPoint(target):
+        return mnt.isAlive()
+    return False
