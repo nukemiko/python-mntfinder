@@ -4,6 +4,8 @@ Parse /proc/mounts and find/list mountpoints.
 
 This project **IS NOT** a wrapper of `findmnt`.
 
+**This project is for Linux-based operating systems only; attempts to install or use on other operating systems (e.g., Microsoft Windows) may result in an error.**
+
 ## Install
 
 Just run the command: `pip install mntfinder`.
